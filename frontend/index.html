@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeleForge - Telegram Bulk Video Downloader</title>
+    <meta name="description" content="A premium high-performance utility to browse, filter, and bulk download videos from your Telegram groups and channels at maximum speed.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="app-sidebar" id="app-sidebar">
+            <div class="brand">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-cloud-arrow-down brand-icon-glow"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>TeleForge</h1>
+                    <span>Bulk Downloader</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-item active" id="nav-btn-auth" data-panel="panel-auth">
+                    <i class="fa-solid fa-user-shield"></i> Connection
+                </button>
+                <button class="nav-item disabled" id="nav-btn-chats" data-panel="panel-chats">
+                    <i class="fa-solid fa-comments-dollar"></i> Chat Browser
+                </button>
+                <button class="nav-item disabled" id="nav-btn-scanner" data-panel="panel-scanner">
+                    <i class="fa-solid fa-magnifying-glass-chart"></i> Scanned Media
+                </button>
+                <button class="nav-item disabled" id="nav-btn-downloads" data-panel="panel-downloads">
+                    <i class="fa-solid fa-download"></i> Downloads
+                    <span class="badge" id="active-download-badge" style="display: none;">0</span>
+                </button>
+                <button class="nav-item" id="nav-btn-settings" data-panel="panel-settings">
+                    <i class="fa-solid fa-sliders"></i> Engine Settings
+                </button>
+                <button class="nav-item" id="nav-btn-history" data-panel="panel-history">
+                    <i class="fa-solid fa-clock-rotate-left"></i> History Log
+                </button>
+            </nav>
+            
+            <div class="sidebar-status-card" id="session-status-card">
+                <div class="status-indicator-dot disconnected" id="status-dot"></div>
+                <div class="status-details">
+                    <span class="status-label">Telegram Status</span>
+                    <span class="status-value" id="status-text">Disconnected</span>
+                </div>
+                <button class="logout-btn" id="btn-logout" title="Log Out" style="display: none;">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="app-main-content">
+            
+            <!-- PANEL: Telegram Authentication -->
+            <section class="content-panel active" id="panel-auth">
+                <div class="panel-header">
+                    <h2>Connection Manager</h2>
+                    <p>Link your Telegram account securely to scan your groups and channels.</p>
+                </div>
+                
+                <div class="card-grid">
+                    <!-- Auth Form Card -->
+                    <div class="glass-card auth-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-key header-icon"></i>
+                            <h3>Credentials Verification</h3>
+                        </div>
+                        
+                        <!-- Form Step 1: Client Settings & Phone -->
+                        <form id="auth-form-step1" class="auth-form-step active">
+                            <div class="alert alert-info">
+                                <i class="fa-solid fa-circle-info"></i>
+                                <div>
+                                    <strong>Need API keys?</strong> Create your app credentials at 
+                                    <a href="https://my.telegram.org" target="_blank" rel="noopener">my.telegram.org</a>. 
+                                    These keys are stored safely on your local computer.
+                                </div>
+                            </div>
+                            
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="input-api-id">API ID</label>
+                                    <input type="number" id="input-api-id" placeholder="e.g. 1234567" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="input-api-hash">API Hash</label>
+                                    <input type="text" id="input-api-hash" placeholder="e.g. 0123456789abcdef0123456789abcdef" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="input-phone">Phone Number</label>
+                                <div class="phone-input-wrapper">
+                                    <i class="fa-solid fa-phone"></i>
+                                    <input type="tel" id="input-phone" placeholder="e.g. +1234567890" required>
+                                </div>
+                                <span class="input-tip">Include country code (e.g. +1 for USA, +91 for India)</span>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-block" id="btn-submit-step1">
+                                Send Authorization Code <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </form>
+
+                        <!-- Form Step 2: OTP Verification -->
+                        <form id="auth-form-step2" class="auth-form-step">
+                            <div class="alert alert-success">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <div>
+                                    An authorization code was sent via Telegram to <strong id="display-phone"></strong>. Please check your Telegram app.
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="input-otp">Telegram OTP Code</label>
+                                <div class="otp-input-wrapper">
+                                    <i class="fa-solid fa-lock-open"></i>
+                                    <input type="text" id="input-otp" placeholder="Enter 5-digit code" required autocomplete="one-time-code">
+                                </div>
+                            </div>
+                            
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-secondary" id="btn-back-step2">
+                                    <i class="fa-solid fa-arrow-left"></i> Change Details
+                                </button>
+                                <button type="submit" class="btn btn-primary" id="btn-submit-step2">
+                                    Verify Code <i class="fa-solid fa-check"></i>
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Form Step 3: Two-Factor Password (2FA) -->
+                        <form id="auth-form-step3" class="auth-form-step">
+                            <div class="alert alert-warning">
+                                <i class="fa-solid fa-key"></i>
+                                <div>
+                                    Your account requires a <strong>Two-Step Verification Password</strong> (2FA Cloud Password).
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="input-password">2FA Password</label>
+                                <div class="password-input-wrapper">
+                                    <i class="fa-solid fa-fingerprint"></i>
+                                    <input type="password" id="input-password" placeholder="Enter your 2FA password" required>
+                                    <button type="button" class="toggle-password" id="btn-toggle-pass">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-secondary" id="btn-back-step3">
+                                    <i class="fa-solid fa-arrow-left"></i> Back to OTP
+                                </button>
+                                <button type="submit" class="btn btn-primary" id="btn-submit-step3">
+                                    Sign In <i class="fa-solid fa-right-to-bracket"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- App Features Info Card -->
+                    <div class="glass-card welcome-card">
+                        <div class="welcome-header">
+                            <span class="badge badge-accent">Host Native</span>
+                            <h3>Welcome to TeleForge</h3>
+                        </div>
+                        <div class="welcome-body">
+                            <p>An advanced tool optimized to extract media from Telegram groups and channels at extreme speeds. Make downloads simple, efficient, and direct.</p>
+                            
+                            <div class="feature-bullets">
+                                <div class="bullet-item">
+                                    <div class="bullet-icon"><i class="fa-solid fa-bolt"></i></div>
+                                    <div class="bullet-text">
+                                        <strong>Multi-Connection Turbo</strong>
+                                        <p>Downloads split chunks concurrently to bypass server limits.</p>
+                                    </div>
+                                </div>
+                                <div class="bullet-item">
+                                    <div class="bullet-icon"><i class="fa-solid fa-filter"></i></div>
+                                    <div class="bullet-text">
+                                        <strong>Smart Filters</strong>
+                                        <p>Isolate exactly what you need by size, date range, or file format.</p>
+                                    </div>
+                                </div>
+                                <div class="bullet-item">
+                                    <div class="bullet-icon"><i class="fa-solid fa-shield"></i></div>
+                                    <div class="bullet-text">
+                                        <strong>Secure Local Execution</strong>
+                                        <p>Your sessions, API keys, and downloads reside locally on your PC.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PANEL: Chat Browser / Group Selector -->
+            <section class="content-panel" id="panel-chats">
+                <div class="panel-header-actions">
+                    <div class="panel-header">
+                        <h2>Chat Browser</h2>
+                        <p>Select a group or channel to scan for videos, or scan a custom link.</p>
+                    </div>
+                    <div class="custom-chat-selector">
+                        <input type="text" id="input-custom-chat" placeholder="Group link or username (e.g. @example_chat or t.me/...)">
+                        <button class="btn btn-primary" id="btn-custom-chat-scan">
+                            Scan Link <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="chat-search-filter">
+                    <div class="search-input-wrapper">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-chats-input" placeholder="Search your groups and channels...">
+                    </div>
+                    <div class="filter-pills">
+                        <button class="pill active" data-filter="all">All Chats</button>
+                        <button class="pill" data-filter="group">Groups</button>
+                        <button class="pill" data-filter="channel">Channels</button>
+                    </div>
+                </div>
+
+                <!-- Chat Grid Container -->
+                <div class="chat-grid" id="chat-grid-container">
+                    <!-- Dynamic chat item list -->
+                    <div class="loading-state">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Loading dialogs...
+                    </div>
+                </div>
+            </section>
+
+            <!-- PANEL: Video Scanner / Media Browser -->
+            <section class="content-panel" id="panel-scanner">
+                <div class="scanner-header">
+                    <button class="btn btn-secondary btn-icon-only" id="btn-back-to-chats" title="Back to Chats">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <div class="scanner-target-details">
+                        <h2 id="scanner-title">Select a Chat to Scan</h2>
+                        <p id="scanner-subtitle">Real-time scan details will appear here.</p>
+                    </div>
+                    
+                    <!-- Scan Statistics Overlay -->
+                    <div class="scan-stats-indicator" id="scan-indicator" style="display: none;">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i>
+                        <span>Scanned: <strong id="scan-stat-scanned">0</strong> | Found: <strong id="scan-stat-found">0</strong></span>
+                    </div>
+                </div>
+
+                <!-- Scan Controls & Filters Card -->
+                <div class="glass-card filter-card">
+                    <div class="filter-header">
+                        <h3><i class="fa-solid fa-filter"></i> Filters & Tools</h3>
+                        <div class="selection-actions">
+                            <span class="selection-count" id="selection-count-text">0 files selected (0.00 GB)</span>
+                            <button class="btn btn-secondary btn-sm" id="btn-select-all">Select All</button>
+                            <button class="btn btn-secondary btn-sm" id="btn-deselect-all">Deselect All</button>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-controls-grid">
+                        <div class="filter-control">
+                            <label for="filter-search-media">Search File Name/Caption</label>
+                            <div class="search-input-wrapper">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="filter-search-media" placeholder="e.g. gameplay, tutorial...">
+                            </div>
+                        </div>
+
+                        <div class="filter-control">
+                            <label>File Size Limit</label>
+                            <div class="size-range-labels">
+                                <span id="size-min-label">0 MB</span>
+                                <span>to</span>
+                                <span id="size-max-label">2+ GB</span>
+                            </div>
+                            <div class="range-slider-wrapper">
+                                <input type="range" id="filter-size-min" min="0" max="2000" value="0" step="10">
+                                <input type="range" id="filter-size-max" min="0" max="2000" value="2000" step="10">
+                            </div>
+                        </div>
+
+                        <div class="filter-control">
+                            <label for="filter-media-type">Video Format / Type</label>
+                            <select id="filter-media-type">
+                                <option value="all">All Media</option>
+                                <option value="mp4">Standard Streamable Video (MP4/MKV)</option>
+                                <option value="doc">Document Files (Uncompressed)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-actions-row">
+                        <div class="folder-picker-bar">
+                            <span class="folder-picker-label">Destination:</span>
+                            <button class="btn btn-secondary btn-sm" id="btn-pick-folder">
+                                <i class="fa-regular fa-folder-open"></i> Browse Folder
+                            </button>
+                            <span class="selected-folder-path" id="selected-folder-path-display">No folder selected</span>
+                        </div>
+                        
+                        <button class="btn btn-primary" id="btn-queue-downloads" disabled>
+                            Queue Selected Files <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Video Grid Container -->
+                <div class="video-grid" id="video-grid-container">
+                    <div class="placeholder-state">
+                        <i class="fa-solid fa-magnifying-glass-arrow-right"></i>
+                        <p>No scans active. Click "Scan Link" or choose a group in the Chat Browser.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PANEL: Downloads Manager -->
+            <section class="content-panel" id="panel-downloads">
+                <!-- Global download stats card -->
+                <div class="download-summary-card">
+                    <div class="summary-metric">
+                        <span class="metric-label">Download Speed</span>
+                        <span class="metric-value" id="global-speed-display">0.0 MB/s</span>
+                    </div>
+                    <div class="summary-metric">
+                        <span class="metric-label">Active Downloads</span>
+                        <span class="metric-value" id="global-active-count">0 / 0</span>
+                    </div>
+                    <div class="summary-metric">
+                        <span class="metric-label">Estimated Time (ETA)</span>
+                        <span class="metric-value" id="global-eta-display">--:--</span>
+                    </div>
+                    <div class="summary-actions">
+                        <button class="btn btn-secondary" id="btn-global-pause" title="Pause Queue">
+                            <i class="fa-solid fa-pause"></i> Pause All
+                        </button>
+                        <button class="btn btn-danger" id="btn-global-cancel" title="Cancel Queue">
+                            <i class="fa-solid fa-xmark"></i> Cancel All
+                        </button>
+                        <button class="btn btn-secondary" id="btn-clear-completed" title="Clear Finished">
+                            <i class="fa-solid fa-trash-can"></i> Clear Completed
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Total progress bar -->
+                <div class="overall-progress-bar-container">
+                    <div class="overall-progress-meta">
+                        <span>Overall Queue Progress</span>
+                        <span id="overall-progress-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" id="overall-progress-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Active Downloads Queue List -->
+                <div class="downloads-queue" id="downloads-queue-list">
+                    <div class="placeholder-state">
+                        <i class="fa-solid fa-circle-down"></i>
+                        <p>No active downloads. Scans files, select them, and queue them here.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PANEL: History Log -->
+            <section class="content-panel" id="panel-history">
+                <div class="panel-header-actions">
+                    <div class="panel-header">
+                        <h2>Download History</h2>
+                        <p>A log of your previously completed downloads.</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-secondary" id="btn-refresh-history" title="Refresh">
+                            <i class="fa-solid fa-rotate-right"></i> Refresh
+                        </button>
+                        <button class="btn btn-danger" id="btn-clear-history" title="Clear History">
+                            <i class="fa-solid fa-trash-can"></i> Clear Log
+                        </button>
+                    </div>
+                </div>
+
+                <div class="downloads-queue" id="history-list-container">
+                    <div class="loading-state">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Loading history...
+                    </div>
+                </div>
+            </section>
+
+            <!-- PANEL: Settings -->
+            <section class="content-panel" id="panel-settings">
+                <div class="panel-header">
+                    <h2>Engine Settings</h2>
+                    <p>Customize the behavior of the Telegram client and download throttler.</p>
+                </div>
+
+                <div class="settings-grid">
+                    <div class="glass-card settings-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-bolt-lightning header-icon"></i>
+                            <h3>Throttling & Bandwidth</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="settings-speed-limit">Download Speed Limit (per connection)</label>
+                                <select id="settings-speed-limit">
+                                    <option value="0">Unlimited (Maximum Connection Capacity)</option>
+                                    <option value="512">512 KB/s (Slow)</option>
+                                    <option value="2048">2 MB/s (Medium)</option>
+                                    <option value="5120">5 MB/s (High)</option>
+                                    <option value="10240">10 MB/s (Ultra)</option>
+                                    <option value="20480">20 MB/s (Extreme)</option>
+                                </select>
+                                <span class="input-tip">Limits the maximum chunk download bandwidth. Helpful to avoid Telegram DC limits.</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="settings-concurrency">Concurrent Downloads</label>
+                                <input type="range" id="settings-concurrency" min="1" max="5" value="3" step="1">
+                                <div class="range-value" id="settings-concurrency-value">3 concurrent downloads</div>
+                                <span class="input-tip">Number of files downloading simultaneously. Higher values speed up large queues but can trigger rate limiting.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card settings-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-folder-tree header-icon"></i>
+                            <h3>Storage Settings</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Default Download Directory</label>
+                                <div class="directory-setting-row">
+                                    <input type="text" id="settings-default-dir" readonly placeholder="No folder selected">
+                                    <button class="btn btn-secondary" id="btn-settings-pick-folder">Change</button>
+                                </div>
+                                <span class="input-tip">Where your downloaded Telegram videos will be saved on your PC.</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="settings-naming">Naming Convention</label>
+                                <select id="settings-naming" disabled>
+                                    <option value="original">Original Filename (Default)</option>
+                                </select>
+                                <span class="input-tip">Files are automatically named after their original file metadata as uploaded on Telegram.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Collapsible System Logs Console -->
+        <footer class="app-footer" id="app-footer">
+            <button class="logs-header-btn" id="btn-toggle-logs">
+                <div class="logs-title">
+                    <i class="fa-solid fa-terminal"></i>
+                    <span>Real-time System Logs Console</span>
+                </div>
+                <div class="logs-controls">
+                    <button class="logs-icon-btn" id="btn-clear-logs" title="Clear Console">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                    <i class="fa-solid fa-chevron-up toggle-arrow" id="logs-arrow"></i>
+                </div>
+            </button>
+            <div class="logs-body" id="logs-body-container">
+                <div class="logs-terminal" id="logs-terminal-output">
+                    <div class="log-line system">[System] Logger connection established. Waiting for logs...</div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- MODAL: Directory Browser -->
+    <div class="modal" id="folder-modal">
+        <div class="modal-overlay" id="folder-modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Select Download Directory</h3>
+                <button class="modal-close" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <!-- Navigation Breadcrumbs -->
+                <div class="breadcrumbs" id="folder-breadcrumbs">
+                    <span class="crumb">My PC</span>
+                </div>
+                
+                <div class="modal-explorer-grid">
+                    <!-- Sidebar presets -->
+                    <div class="explorer-sidebar" id="folder-sidebar-presets">
+                        <!-- Drives & Common directories -->
+                    </div>
+                    
+                    <!-- File directory list -->
+                    <div class="explorer-list-view" id="folder-explorer-list">
+                        <!-- Loaded subfolders -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="current-selected-path-wrapper">
+                    <span>Selected:</span>
+                    <strong id="modal-selected-path-display">None</strong>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="btn-cancel-folder">Cancel</button>
+                    <button class="btn btn-primary" id="btn-confirm-folder" disabled>Select Folder</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
